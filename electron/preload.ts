@@ -11,7 +11,6 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     return ipcRenderer.off(channel, ...omit)
   },
   send(...args: Parameters<typeof ipcRenderer.send>) {
-    console.log("Sending...");
     const [channel, ...omit] = args
     return ipcRenderer.send(channel, ...omit)
   },

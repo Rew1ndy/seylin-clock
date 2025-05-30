@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
-path.join(process.env.APP_ROOT, "dist-electron");
+const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
 function createMainWindow() {
@@ -30,7 +30,6 @@ function createMainWindow() {
   const x = screenWidth - winWidth - 20;
   const y = screenHeight - winHeight - 20;
   win2.setBounds({ x, y, width: winWidth, height: winHeight });
-  win2 == null ? void 0 : win2.webContents.openDevTools();
   return win2;
 }
 function loadRenderer(win2) {
@@ -43,6 +42,41 @@ function loadRenderer(win2) {
     win2.loadFile(path$1.join(RENDERER_DIST, "index.html"));
   }
 }
+function createDialogWindow(mainWindow, windowType = "timer") {
+  const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
+  const dialogWindow = new BrowserWindow({
+    width: 400,
+    height: 300,
+    resizable: true,
+    modal: true,
+    alwaysOnTop: true,
+    frame: false,
+    transparent: true,
+    parent: mainWindow,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path$1.join(MAIN_DIST, "preload.mjs")
+    }
+  });
+  dialogWindow.webContents.openDevTools();
+  const winWidth = 400;
+  const winHeight = 200;
+  const x = screenWidth - winWidth - 20;
+  const y = screenHeight - winHeight - 20;
+  dialogWindow.setBounds({ x, y, width: winWidth, height: winHeight });
+  if (VITE_DEV_SERVER_URL) {
+    dialogWindow.loadURL(`${VITE_DEV_SERVER_URL}?window=${windowType}`);
+  } else {
+    dialogWindow.loadFile(path$1.join(RENDERER_DIST, "index.html"), {
+      hash: `window=${windowType}`
+    });
+  }
+  dialogWindow.webContents.on("did-finish-load", () => {
+    dialogWindow.webContents.send("main-process-message", `Окно ${windowType} загружено`);
+  });
+  return dialogWindow;
+}
 function setupIpcHandlers() {
   ipcMain.on("close-window", () => {
     console.log("Закрытие окна");
@@ -50,7 +84,6 @@ function setupIpcHandlers() {
     currentWin == null ? void 0 : currentWin.close();
   });
   ipcMain.on("move-window", (_event, data) => {
-    console.log("Получено перемещение:", data);
     const currentWin = BrowserWindow.getFocusedWindow();
     if (!currentWin) return;
     const bounds = currentWin.getBounds();
@@ -61,13 +94,31 @@ function setupIpcHandlers() {
       height: bounds.height
     });
   });
-  ipcMain.on("test-message", (_event, message) => {
-    console.log("Получено сообщение:", message);
-  });
   ipcMain.on("set-window-size", (_event, size) => {
     console.log("Изменение размера окна:", size);
     const currentWin = BrowserWindow.getFocusedWindow();
     if (currentWin) currentWin.setBounds({ width: size.width, height: size.height });
+  });
+  ipcMain.on("toggle-window", (_event, isUnbound) => {
+    console.log("Unbound: ", isUnbound);
+    const currentWin = BrowserWindow.getFocusedWindow();
+    currentWin == null ? void 0 : currentWin.setAlwaysOnTop(!isUnbound);
+  });
+  ipcMain.on("pos-event-button", (_event, target) => {
+    const mainWindow = BrowserWindow.getFocusedWindow();
+    console.log("Left clicked!", target);
+    switch (target.pos) {
+      case 0:
+        break;
+      case 1:
+        console.log("Main button");
+        createDialogWindow(mainWindow, "timer");
+        break;
+    }
+  });
+  ipcMain.on("timer-loaded", (_event, message) => {
+    console.log("Сообщение от таймера:", message);
+    _event.sender.send("main-process-message", "Привет от основного процесса!");
   });
 }
 let win;
