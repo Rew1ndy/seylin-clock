@@ -26,8 +26,8 @@ function App() {
         }
         break;
       case 1:
-        // none
-        window.ipcRenderer.send('close-window')
+        console.log("Window closing");
+        window.ipcRenderer.send('close-window');
         break;
       case 2:
         setStartPos({ x: e.clientX, y: e.clientY });
