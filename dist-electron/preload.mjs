@@ -10,7 +10,6 @@ electron.contextBridge.exposeInMainWorld("ipcRenderer", {
     return electron.ipcRenderer.off(channel, ...omit);
   },
   send(...args) {
-    console.log("Sending...");
     const [channel, ...omit] = args;
     return electron.ipcRenderer.send(channel, ...omit);
   },

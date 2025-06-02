@@ -1,4 +1,3 @@
-// main.ts - основной процесс
 import { app, BrowserWindow, ipcMain } from 'electron';
 import createMainWindow from './window';
 import { loadRenderer } from './renderer';
