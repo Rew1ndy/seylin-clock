@@ -30,6 +30,7 @@ function createMainWindow() {
   const x = screenWidth - winWidth - 20;
   const y = screenHeight - winHeight - 20;
   win2.setBounds({ x, y, width: winWidth, height: winHeight });
+  win2 == null ? void 0 : win2.webContents.openDevTools();
   return win2;
 }
 function loadRenderer(win2) {
@@ -119,6 +120,11 @@ function setupIpcHandlers() {
   ipcMain.on("timer-loaded", (_event, message) => {
     console.log("Сообщение от таймера:", message);
     _event.sender.send("main-process-message", "Привет от основного процесса!");
+  });
+  ipcMain.on("timer-function-start", (_event, message) => {
+    console.log(message);
+    const mainWindow = BrowserWindow.getAllWindows().find((win2) => win2.webContents !== _event.sender);
+    mainWindow == null ? void 0 : mainWindow.webContents.send("timer-function-start", message);
   });
 }
 let win;

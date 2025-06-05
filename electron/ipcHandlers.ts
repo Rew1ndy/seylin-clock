@@ -63,4 +63,11 @@ export function setupIpcHandlers() {
     // Можно отправить обратно какие-то данные
     _event.sender.send("main-process-message", "Привет от основного процесса!");
   });
+
+  ipcMain.on("timer-function-start", (_event, message) => {
+    console.log(message);
+    const mainWindow = BrowserWindow.getAllWindows().find(win => win.webContents !== _event.sender);
+    mainWindow?.webContents.send("timer-function-start", message);
+    // console.log("Focused: ", mainWindow)
+  })
 }

@@ -1,10 +1,13 @@
 // App.tsx - процесс рендеринга
 import { useEffect, useRef, useState } from 'react';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import { IpcRenderer, IpcRendererEvent } from 'electron';
+import { TimeData } from './components/TimerFunction';
+import TimerModule from './modules/TimerModule';
 import './App.css';
-import { IpcRenderer } from 'electron';
 
 function App() {
+  const [timerData, setTimerData] = useState<TimeData>({ hours: 0, minutes: 0, seconds: 0 });
+  const [clockType, setClockType] = useState<number>(0); // 0: clock, 1: timer;
   const [time, setTime] = useState<string>("");
   const [windowOpacity, setWindowOpacity] = useState<number>(0.5);
   const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
@@ -69,6 +72,11 @@ function App() {
   }
   
   useEffect(() => {
+    // console.log("Main.Window.Updated")
+    // window.ipcRenderer.on("timer-function-start", (_event, message) => {
+    //   console.log(message);
+    // })
+
     if (window.ipcRenderer) {
       console.log("ipcRenderer доступен в рендерере");
     } else {
@@ -90,6 +98,23 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    window.ipcRenderer.on('timer-function-start', (_event, timeData) => timerFunctionOperation(_event, timeData));
+
+    return () => {
+        // window.ipcRenderer.removeAllListeners('timer-function-start');
+        window.ipcRenderer.removeListener('timer-function-start', timerFunctionOperation);
+    };
+  }, []);
+
+  const timerFunctionOperation = (_event: IpcRendererEvent, timeData: TimeData) => {
+    if (timeData) {
+        console.log("Timer recived!", timeData);
+        setTimerData(timeData);
+        setClockType(1);
+      }
+  }
+
   return (
     <div 
       className="clock-wrapper" 
@@ -100,44 +125,40 @@ function App() {
       onMouseMove={mouseMoveHandler}
       ref={mainRef}
     >
-      <div 
-        className="block-left glass-left glass unselectable"
-        onClick={handleEventOption}
-        id="left-button"
-      ></div>
-      <div 
-        className="block-mid glass-mid glass unselectable"
-        onClick={handleEventOption}
-        id="mid-button"
-      ></div>
-      <div 
-        className="block-right glass-right glass unselectable"
-        onClick={handleEventOption}
-        id="right-button"
-      ></div>
-      <p className="time-stamp unselectable">{time}</p>
-      {/* <p 
-        className="move-icon"
-        onMouseDown={mouseDownHandler}
-        onMouseUp={mouseUpHandler}
-        onMouseLeave={mouseUpHandler}
-        onMouseMove={mouseMoveHandler}
-      ><DragIndicatorIcon /></p> */}
+
+    {clockType == 0 && (
+       <div className="timeModule">
+        <div 
+          className="block-left glass-left glass unselectable"
+          onClick={handleEventOption}
+          id="left-button"
+        ></div>
+        <div 
+          className="block-mid glass-mid glass unselectable"
+          onClick={handleEventOption}
+          id="mid-button"
+        ></div>
+        <div 
+          className="block-right glass-right glass unselectable"
+          onClick={handleEventOption}
+          id="right-button"
+        ></div>
+        <p className="time-stamp unselectable">{time}</p>
+      </div>
+    )}
+
+    {clockType == 1 && (
+      <TimerModule />
+    )}
+    
     </div>
   );
 }
 
 export default App;
 
-// типы для TypeScript
 declare global {
   interface Window {
     ipcRenderer: IpcRenderer;
-    // {
-    //   send: (channel: string, ...args: any[]) => void;
-    //   on: (channel: string, listener: (event: any, ...args: any[]) => void) => void;
-    //   off: (channel: string, listener?: (event: any, ...args: any[]) => void) => void;
-    //   invoke: (channel: string, ...args: any[]) => Promise<any>;
-    // };
   }
 }

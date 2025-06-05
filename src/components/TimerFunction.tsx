@@ -3,20 +3,27 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import "./timerFunction.css";
 
+export type TimeData = {
+    hours: number,
+    minutes: number,
+    seconds: number,
+}
+
 export default function TimerFunction() {
     const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
     const [windowOpacity, setWindowOpacity] = useState<number>(0.9);
     const mainRef = useRef<HTMLDivElement>(null);
+    const [timeData, setTimeData] = useState<TimeData>({hours: 0, minutes: 0, seconds: 0});
 
     const mouseDownHandler = (e: React.MouseEvent) => {
         switch (e.button) {
         case 0:
             if (e.altKey) {
-                window.ipcRenderer.send('close-window')
+                window.ipcRenderer.send('close-window');
             }
             break;
         case 1:
-            window.ipcRenderer.send('close-window')
+            window.ipcRenderer.send('close-window');
             break;
         case 2:
             setStartPos({ x: e.clientX, y: e.clientY });
@@ -53,6 +60,46 @@ export default function TimerFunction() {
             window.removeEventListener("wheel", wheelHandler);
         };
     }, []);
+
+    const normalizeTime = (timeData: TimeData): TimeData => {
+        let { hours, minutes, seconds } = timeData;
+
+        if (seconds >= 60) {
+            minutes += Math.floor(seconds / 60);
+            seconds %= 60;
+        } else if (seconds < 0) {
+            minutes -= Math.ceil(Math.abs(seconds) / 60);
+            seconds = (seconds + 60) % 60;
+        }
+
+        if (minutes >= 60) {
+            hours += Math.floor(minutes / 60);
+            minutes %= 60;
+        } else if (minutes < 0) {
+            hours -= Math.ceil(Math.abs(minutes) / 60);
+            minutes = (minutes + 60) % 60;
+        }
+
+        if (hours < 0) {
+            hours = 0;
+        }
+
+        return { hours, minutes, seconds };
+    };
+
+    const handleTime = (time: keyof TimeData, type: number) => {
+        let newTime: TimeData = { ...timeData };
+        newTime[time] += type;
+
+        setTimeData(normalizeTime(newTime));
+    }
+
+    const sendTimer = () => {
+        if (timeData.hours > 0 || timeData.minutes > 0 || timeData.seconds > 0) {
+            window.ipcRenderer.send("timer-function-start", timeData);
+            window.ipcRenderer.send("close-window");
+        }
+    }
     
     return (
         <div 
@@ -67,21 +114,22 @@ export default function TimerFunction() {
             <h1>Set time:</h1>
             <div className="set-time">
                 <div className="hours time">
-                    <button><KeyboardArrowUpIcon /></button>
-                    <p>{}00</p>
-                    <button><KeyboardArrowDownIcon /></button>
+                    <button onClick={() => handleTime('hours', 1)}><KeyboardArrowUpIcon /></button>
+                    <p>{timeData.hours}</p>
+                    <button onClick={() => handleTime('hours', -1)}><KeyboardArrowDownIcon /></button>
                 </div>
                 <div className="minutes time">
-                    <button><KeyboardArrowUpIcon /></button>
-                    <p>{}00</p>
-                    <button><KeyboardArrowDownIcon /></button>
+                    <button onClick={() => handleTime('minutes', 1)}><KeyboardArrowUpIcon /></button>
+                    <p>{timeData.minutes}</p>
+                    <button onClick={() => handleTime('minutes', -1)}><KeyboardArrowDownIcon /></button>
                 </div>
                 <div className="seconds time">
-                    <button><KeyboardArrowUpIcon /></button>
-                    <p>{}00</p>
-                    <button><KeyboardArrowDownIcon /></button>
+                    <button onClick={() => handleTime('seconds', 1)}><KeyboardArrowUpIcon /></button>
+                    <p>{timeData.seconds}</p>
+                    <button onClick={() => handleTime('seconds', -1)}><KeyboardArrowDownIcon /></button>
                 </div>
             </div>
+            <button className='' onClick={sendTimer}>Start</button>
             {/* <h1>Таймер</h1>
             <p>Hello Mark</p>
             <p>Сообщение: {message}</p>

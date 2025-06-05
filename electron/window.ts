@@ -30,7 +30,7 @@ export default function createMainWindow() {
     const y = screenHeight - winHeight - 20; // 20px отступ от нижнего края
 
     win.setBounds({ x, y, width: winWidth, height: winHeight });
-    // win?.webContents.openDevTools();
+    win?.webContents.openDevTools();
 
     return win;
 }
