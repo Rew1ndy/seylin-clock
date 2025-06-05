@@ -7,9 +7,9 @@ export type TimeData = {
     hours: number,
     minutes: number,
     seconds: number,
-}
+};
 
-export default function TimerFunction() {
+export function TimerFunction() {
     const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
     const [windowOpacity, setWindowOpacity] = useState<number>(0.9);
     const mainRef = useRef<HTMLDivElement>(null);
@@ -130,12 +130,6 @@ export default function TimerFunction() {
                 </div>
             </div>
             <button className='' onClick={sendTimer}>Start</button>
-            {/* <h1>Таймер</h1>
-            <p>Hello Mark</p>
-            <p>Сообщение: {message}</p>
-            <button onClick={() => window.ipcRenderer.send('close-window')}>
-                Закрыть окно
-            </button> */}
         </div>
     );
 }

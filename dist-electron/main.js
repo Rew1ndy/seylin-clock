@@ -30,7 +30,6 @@ function createMainWindow() {
   const x = screenWidth - winWidth - 20;
   const y = screenHeight - winHeight - 20;
   win2.setBounds({ x, y, width: winWidth, height: winHeight });
-  win2 == null ? void 0 : win2.webContents.openDevTools();
   return win2;
 }
 function loadRenderer(win2) {
@@ -43,11 +42,13 @@ function loadRenderer(win2) {
     win2.loadFile(path$1.join(RENDERER_DIST, "index.html"));
   }
 }
-function createDialogWindow(mainWindow, windowType = "timer") {
+function createDialogWindow(mainWindow, windowType) {
   const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
+  const winWidth = mainWindow.getBounds().width;
+  const winHeight = mainWindow.getBounds().height;
   const dialogWindow = new BrowserWindow({
-    width: 400,
-    height: 300,
+    width: winWidth,
+    height: winHeight,
     resizable: true,
     modal: true,
     alwaysOnTop: true,
@@ -60,9 +61,6 @@ function createDialogWindow(mainWindow, windowType = "timer") {
       preload: path$1.join(MAIN_DIST, "preload.mjs")
     }
   });
-  dialogWindow.webContents.openDevTools();
-  const winWidth = 400;
-  const winHeight = 200;
   const x = screenWidth - winWidth - 20;
   const y = screenHeight - winHeight - 20;
   dialogWindow.setBounds({ x, y, width: winWidth, height: winHeight });
@@ -74,13 +72,13 @@ function createDialogWindow(mainWindow, windowType = "timer") {
     });
   }
   dialogWindow.webContents.on("did-finish-load", () => {
-    dialogWindow.webContents.send("main-process-message", `Окно ${windowType} загружено`);
+    dialogWindow.webContents.send("main-process-message", `Window ${windowType} loaded`);
   });
   return dialogWindow;
 }
 function setupIpcHandlers() {
   ipcMain.on("close-window", () => {
-    console.log("Закрытие окна");
+    console.log("Window Closed");
     const currentWin = BrowserWindow.getFocusedWindow();
     currentWin == null ? void 0 : currentWin.close();
   });
@@ -96,7 +94,7 @@ function setupIpcHandlers() {
     });
   });
   ipcMain.on("set-window-size", (_event, size) => {
-    console.log("Изменение размера окна:", size);
+    console.log("Window size changed:", size);
     const currentWin = BrowserWindow.getFocusedWindow();
     if (currentWin) currentWin.setBounds({ width: size.width, height: size.height });
   });
@@ -112,14 +110,9 @@ function setupIpcHandlers() {
       case 0:
         break;
       case 1:
-        console.log("Main button");
         createDialogWindow(mainWindow, "timer");
         break;
     }
-  });
-  ipcMain.on("timer-loaded", (_event, message) => {
-    console.log("Сообщение от таймера:", message);
-    _event.sender.send("main-process-message", "Привет от основного процесса!");
   });
   ipcMain.on("timer-function-start", (_event, message) => {
     console.log(message);

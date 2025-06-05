@@ -3,12 +3,14 @@ import { BrowserWindow, screen } from "electron";
 import path from "path";
 import { VITE_DEV_SERVER_URL, RENDERER_DIST, MAIN_DIST } from "./constants";
 
-export function createDialogWindow(mainWindow: any, windowType: string = 'timer') {
+export function createDialogWindow(mainWindow: any, windowType: string) {
   const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
+  const winWidth = mainWindow.getBounds().width;
+  const winHeight = mainWindow.getBounds().height;
 
   const dialogWindow = new BrowserWindow({
-    width: 400,
-    height: 300,
+    width: winWidth,
+    height: winHeight,
     resizable: true,
     modal: true,
     alwaysOnTop: true,
@@ -23,11 +25,7 @@ export function createDialogWindow(mainWindow: any, windowType: string = 'timer'
   });
 
   // Для отладки
-  dialogWindow.webContents.openDevTools();
-      
-
-  const winWidth = 400;
-  const winHeight = 200;
+  // dialogWindow.webContents.openDevTools();
 
   const x = screenWidth - winWidth - 20; // 20px отступ от правого края
   const y = screenHeight - winHeight - 20; // 20px отступ от нижнего края
@@ -35,19 +33,15 @@ export function createDialogWindow(mainWindow: any, windowType: string = 'timer'
   dialogWindow.setBounds({ x, y, width: winWidth, height: winHeight });
   
   if (VITE_DEV_SERVER_URL) {
-    // Добавляем параметр window к URL
     dialogWindow.loadURL(`${VITE_DEV_SERVER_URL}?window=${windowType}`);
   } else {
-    // В продакшене загружаем тот же index.html, но с параметром в хэше
-    // URL хэш сохраняется даже при загрузке файла
     dialogWindow.loadFile(path.join(RENDERER_DIST, "index.html"), {
       hash: `window=${windowType}`
     });
   }
 
-  // Отправляем сообщение после загрузки окна
   dialogWindow.webContents.on("did-finish-load", () => {
-    dialogWindow.webContents.send("main-process-message", `Окно ${windowType} загружено`);
+    dialogWindow.webContents.send("main-process-message", `Window ${windowType} loaded`);
   });
 
   return dialogWindow;

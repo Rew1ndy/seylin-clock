@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import TimerFunction from './components/TimerFunction';
+import { TimerFunction } from './components/TimerFunction';
 import './index.css';
 
 // Для отладки

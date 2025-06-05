@@ -3,10 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import { IpcRenderer, IpcRendererEvent } from 'electron';
 import { TimeData } from './components/TimerFunction';
 import TimerModule from './modules/TimerModule';
-import ClockModule from './modules/ClockModule';
 import './App.css';
 
-export default function App() {
+function App() {
   const [timerData, setTimerData] = useState<TimeData>({ hours: 0, minutes: 0, seconds: 0 });
   const [clockType, setClockType] = useState<number>(0); // 0: clock, 1: timer;
   const [time, setTime] = useState<string>("");
@@ -71,10 +70,42 @@ export default function App() {
         break;
     }
   }
+  
+  useEffect(() => {
+    // console.log("Main.Window.Updated")
+    // window.ipcRenderer.on("timer-function-start", (_event, message) => {
+    //   console.log(message);
+    // })
 
-  const updateTimeListener = (_event: IpcRendererEvent, currentTime: string) => {
-    setTime(currentTime);
-  };
+    if (window.ipcRenderer) {
+      console.log("ipcRenderer доступен в рендерере");
+    } else {
+      console.error("ipcRenderer НЕ доступен в рендерере");
+    }
+
+    // Сохраняем функцию-слушатель как ссылку, чтобы потом можно было её удалить
+    const updateTimeListener = (_event: any, currentTime: string) => {
+      setTime(currentTime);
+    };
+
+    window.ipcRenderer.on("update-time", updateTimeListener);
+        
+    window.addEventListener('wheel', wheelHandler);
+    return () => {
+      window.removeEventListener("wheel", wheelHandler);
+      // Удаляем слушателя, передавая ту же функцию-ссылку
+      window.ipcRenderer.off("update-time", updateTimeListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    window.ipcRenderer.on('timer-function-start', (_event, timeData) => timerFunctionOperation(_event, timeData));
+
+    return () => {
+        // window.ipcRenderer.removeAllListeners('timer-function-start');
+        window.ipcRenderer.removeListener('timer-function-start', timerFunctionOperation);
+    };
+  }, []);
 
   const timerFunctionOperation = (_event: IpcRendererEvent, timeData: TimeData) => {
     if (timeData) {
@@ -83,24 +114,6 @@ export default function App() {
         setClockType(1);
       }
   }
-  
-  useEffect(() => {
-    if (window.ipcRenderer) {
-      console.log("ipcRenderer loaded!");
-    } else {
-      console.error("ipcRenderer Error (Not found!)");
-    }
-    
-    window.ipcRenderer.on('timer-function-start', timerFunctionOperation);
-    window.ipcRenderer.on("update-time", updateTimeListener);
-        
-    window.addEventListener('wheel', wheelHandler);
-    return () => {
-      window.removeEventListener("wheel", wheelHandler);
-      window.ipcRenderer.off("update-time", updateTimeListener);
-      window.ipcRenderer.off('timer-function-start', timerFunctionOperation);
-    };
-  }, []);
 
   return (
     <div 
@@ -114,16 +127,35 @@ export default function App() {
     >
 
     {clockType == 0 && (
-      <ClockModule time={time} handleEventOption={handleEventOption} />
+       <div className="timeModule">
+        <div 
+          className="block-left glass-left glass unselectable"
+          onClick={handleEventOption}
+          id="left-button"
+        ></div>
+        <div 
+          className="block-mid glass-mid glass unselectable"
+          onClick={handleEventOption}
+          id="mid-button"
+        ></div>
+        <div 
+          className="block-right glass-right glass unselectable"
+          onClick={handleEventOption}
+          id="right-button"
+        ></div>
+        <p className="time-stamp unselectable">{time}</p>
+      </div>
     )}
 
     {clockType == 1 && (
-      <TimerModule timerData={timerData} timerStatus={setClockType} />
+      <TimerModule />
     )}
     
     </div>
   );
 }
+
+export default App;
 
 declare global {
   interface Window {
