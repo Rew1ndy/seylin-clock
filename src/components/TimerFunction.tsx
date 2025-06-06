@@ -2,18 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import "./timerFunction.css";
+import TimeNormalize from './TimeNormalize';
 
 export type TimeData = {
-    hours: number,
-    minutes: number,
-    seconds: number,
+    hours: number | string,
+    minutes: number | string,
+    seconds: number | string,
 };
 
 export function TimerFunction() {
     const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
     const [windowOpacity, setWindowOpacity] = useState<number>(0.9);
     const mainRef = useRef<HTMLDivElement>(null);
-    const [timeData, setTimeData] = useState<TimeData>({hours: 0, minutes: 0, seconds: 0});
+    const [timeData, setTimeData] = useState<TimeData>(TimeNormalize({hours: 0, minutes: 0, seconds: 0}));
 
     const mouseDownHandler = (e: React.MouseEvent) => {
         switch (e.button) {
@@ -61,8 +62,8 @@ export function TimerFunction() {
         };
     }, []);
 
-    const normalizeTime = (timeData: TimeData): TimeData => {
-        let { hours, minutes, seconds } = timeData;
+    const calculateTime = (timeData: TimeData): TimeData => {
+        let { hours, minutes, seconds } = { ...timeData };
 
         if (seconds >= 60) {
             minutes += Math.floor(seconds / 60);
@@ -84,14 +85,19 @@ export function TimerFunction() {
             hours = 0;
         }
 
-        return { hours, minutes, seconds };
+        return {hours, minutes, seconds};
     };
 
     const handleTime = (time: keyof TimeData, type: number) => {
         let newTime: TimeData = { ...timeData };
+        newTime = {
+            hours : Number(newTime.hours),
+            minutes : Number(newTime.minutes),
+            seconds : Number(newTime.seconds),
+        }
         newTime[time] += type;
 
-        setTimeData(normalizeTime(newTime));
+        setTimeData(TimeNormalize(calculateTime(newTime)));
     }
 
     const sendTimer = () => {
@@ -111,7 +117,6 @@ export function TimerFunction() {
             onMouseMove={mouseMoveHandler}
             ref={mainRef}
         >
-            <h1>Set time:</h1>
             <div className="set-time">
                 <div className="hours time">
                     <button onClick={() => handleTime('hours', 1)}><KeyboardArrowUpIcon /></button>

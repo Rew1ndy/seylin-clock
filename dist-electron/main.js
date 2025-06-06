@@ -61,6 +61,7 @@ function createDialogWindow(mainWindow, windowType) {
       preload: path$1.join(MAIN_DIST, "preload.mjs")
     }
   });
+  dialogWindow.webContents.openDevTools();
   const x = screenWidth - winWidth - 20;
   const y = screenHeight - winHeight - 20;
   dialogWindow.setBounds({ x, y, width: winWidth, height: winHeight });

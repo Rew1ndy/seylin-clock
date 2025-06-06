@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TimeData } from '../components/TimerFunction';
-import timerSound from './timer-sound.mp3';
+import timerSound from '../assets/timer-sound.mp3';
 
 type DataType = {
     timerData: TimeData,

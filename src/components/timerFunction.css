@@ -5,10 +5,16 @@
     width: 100vw;
     height: 100vh;
 
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    display: grid;
+    grid-template-rows: 1fr auto;
     align-items: center;
+
+    padding: 5%;
+}
+
+.timer-wrapper h1 {
+    text-align: center;
+
 }
 
 .set-time {
@@ -35,17 +41,35 @@
 
 .set-time .time button {
     margin: 0 auto;
-    width: 80%;
+    width: 60%;
+    border-radius: .5rem;
     border: 0;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, .3);
+    padding: 3%;
+    background-color: rgba(0, 0, 0, .02);
     color: whitesmoke;
+
+    transition: all .5s ease;
+}
+
+.set-time .time button:hover {
+    background-color: rgba(255, 255, 255, .1);
 }
 
 .set-time .time p {
-    /* background-color: antiquewhite; */
     display: flex;
     align-self: center;
     justify-self: center;
     text-align: center;
+
+    font-size: 8vw;
+}
+
+.set-time .time p::after {
+    content: ":";
+    transform: translateX(700%);
+}
+
+.set-time .seconds p::after {
+    content: "";
+    display: none;
 }

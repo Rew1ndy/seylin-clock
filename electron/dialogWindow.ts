@@ -25,7 +25,7 @@ export function createDialogWindow(mainWindow: any, windowType: string) {
   });
 
   // Для отладки
-  // dialogWindow.webContents.openDevTools();
+  dialogWindow.webContents.openDevTools();
 
   const x = screenWidth - winWidth - 20; // 20px отступ от правого края
   const y = screenHeight - winHeight - 20; // 20px отступ от нижнего края
