@@ -64,8 +64,13 @@ export function TimerFunction() {
 
     const calculateTime = (timeData: TimeData): TimeData => {
         let { hours, minutes, seconds } = { ...timeData };
+        {
+            hours = Number(hours),
+            minutes = Number(minutes),
+            seconds = Number(seconds)
+        }
 
-        if (seconds >= 60) {
+        if (Number(seconds) >= 60) {
             minutes += Math.floor(seconds / 60);
             seconds %= 60;
         } else if (seconds < 0) {
@@ -95,13 +100,13 @@ export function TimerFunction() {
             minutes : Number(newTime.minutes),
             seconds : Number(newTime.seconds),
         }
-        newTime[time] += type;
+        newTime[time] = Number(newTime[time]) + type;
 
         setTimeData(TimeNormalize(calculateTime(newTime)));
     }
 
     const sendTimer = () => {
-        if (timeData.hours > 0 || timeData.minutes > 0 || timeData.seconds > 0) {
+        if (Number(timeData.hours) > 0 || Number(timeData.minutes) > 0 || Number(timeData.seconds) > 0) {
             window.ipcRenderer.send("timer-function-start", timeData);
             window.ipcRenderer.send("close-window");
         }
@@ -123,18 +128,20 @@ export function TimerFunction() {
                     <p>{timeData.hours}</p>
                     <button onClick={() => handleTime('hours', -1)}><KeyboardArrowDownIcon /></button>
                 </div>
+                <p className="time-sep">:</p>
                 <div className="minutes time">
                     <button onClick={() => handleTime('minutes', 1)}><KeyboardArrowUpIcon /></button>
                     <p>{timeData.minutes}</p>
                     <button onClick={() => handleTime('minutes', -1)}><KeyboardArrowDownIcon /></button>
                 </div>
+                <p className="time-sep">:</p>
                 <div className="seconds time">
                     <button onClick={() => handleTime('seconds', 1)}><KeyboardArrowUpIcon /></button>
                     <p>{timeData.seconds}</p>
                     <button onClick={() => handleTime('seconds', -1)}><KeyboardArrowDownIcon /></button>
                 </div>
             </div>
-            <button className='' onClick={sendTimer}>Start</button>
+            <button className='start' onClick={sendTimer}>Start</button>
         </div>
     );
 }
