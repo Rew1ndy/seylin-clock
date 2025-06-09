@@ -39,10 +39,11 @@ export function setupIpcHandlers() {
     console.log("Left clicked!", target)
     switch (target.pos) {
       case 0:
+        createDialogWindow(mainWindow, 'timer');
         
         break;
       case 1:
-        createDialogWindow(mainWindow, 'timer');
+        
         break;
       case 2:
 

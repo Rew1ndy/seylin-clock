@@ -6,8 +6,8 @@ import { __dirname } from "./constants";
 export default function createMainWindow() {
     const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
 
-    const winWidth = 250;
-    const winHeight = 100;
+    const winWidth = 350;
+    const winHeight = 150;
 
     const win = new BrowserWindow({
         icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
@@ -16,6 +16,7 @@ export default function createMainWindow() {
         alwaysOnTop: true,
         frame: false,
         resizable: true,
+        minimizable: false,
         transparent: true,
         roundedCorners: true,
         hasShadow: false,
@@ -29,7 +30,7 @@ export default function createMainWindow() {
     const y = screenHeight - winHeight - 20; // 20px отступ от нижнего края
 
     win.setBounds({ x, y, width: winWidth, height: winHeight });
-    // win?.webContents.openDevTools();
+    win?.webContents.openDevTools();
 
     return win;
 }

@@ -1,4 +1,4 @@
-.timer-wrapper {
+.set-timer-wrapper {
     background-color: var(--background-custom-base);
     color: whitesmoke;
     border-radius: var(--glass-border-radius);
@@ -12,7 +12,7 @@
     padding: 5%;
 }
 
-.timer-wrapper h1 {
+.set-timer-wrapper h1 {
     text-align: center;
 
 }
@@ -30,6 +30,9 @@
 .time-sep {
     text-align: center;
     font-size: min(8vw, 8vh);
+    cursor: unset;
+    pointer-events: none;
+    user-select: none;
 }
 
 .set-time .time {
@@ -68,6 +71,9 @@
 
     /* font-size: 8vw; */
     font-size: min(8vw, 8vh);
+    cursor: unset;
+    pointer-events: none;
+    user-select: none;
 }
 
 /* .set-time .time p::after {

@@ -10,8 +10,8 @@ const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
 function createMainWindow() {
   const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
-  const winWidth = 250;
-  const winHeight = 100;
+  const winWidth = 350;
+  const winHeight = 150;
   const win2 = new BrowserWindow({
     icon: path$1.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     width: winWidth,
@@ -19,6 +19,7 @@ function createMainWindow() {
     alwaysOnTop: true,
     frame: false,
     resizable: true,
+    minimizable: false,
     transparent: true,
     roundedCorners: true,
     hasShadow: false,
@@ -30,6 +31,7 @@ function createMainWindow() {
   const x = screenWidth - winWidth - 20;
   const y = screenHeight - winHeight - 20;
   win2.setBounds({ x, y, width: winWidth, height: winHeight });
+  win2 == null ? void 0 : win2.webContents.openDevTools();
   return win2;
 }
 function loadRenderer(win2) {
@@ -54,6 +56,7 @@ function createDialogWindow(mainWindow, windowType) {
     alwaysOnTop: true,
     frame: false,
     transparent: true,
+    minimizable: false,
     parent: mainWindow,
     webPreferences: {
       nodeIntegration: false,
@@ -61,7 +64,6 @@ function createDialogWindow(mainWindow, windowType) {
       preload: path$1.join(MAIN_DIST, "preload.mjs")
     }
   });
-  dialogWindow.webContents.openDevTools();
   const x = screenWidth - winWidth - 20;
   const y = screenHeight - winHeight - 20;
   dialogWindow.setBounds({ x, y, width: winWidth, height: winHeight });
@@ -109,8 +111,6 @@ function setupIpcHandlers() {
     console.log("Left clicked!", target);
     switch (target.pos) {
       case 0:
-        break;
-      case 1:
         createDialogWindow(mainWindow, "timer");
         break;
     }

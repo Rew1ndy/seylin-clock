@@ -114,7 +114,7 @@ export function TimerFunction() {
     
     return (
         <div 
-            className="timer-wrapper"
+            className="set-timer-wrapper"
             style={{ backgroundColor: `rgba(39, 41, 49, ${windowOpacity})`}}
             onMouseDown={mouseDownHandler}
             onMouseUp={mouseUpHandler}

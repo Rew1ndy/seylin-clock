@@ -5,10 +5,11 @@ import { TimeData } from './components/TimerFunction';
 import TimerModule from './modules/TimerModule';
 import ClockModule from './modules/ClockModule';
 import './App.css';
+import StopwatchModule from './modules/StopwatchModule';
 
 export default function App() {
   const [timerData, setTimerData] = useState<TimeData>({ hours: 0, minutes: 0, seconds: 0 });
-  const [clockType, setClockType] = useState<number>(0); // 0: clock, 1: timer;
+  const [clockType, setClockType] = useState<number>(0); // 0: clock, 1: timer; 2: stopwatch;
   const [time, setTime] = useState<string>("");
   const [windowOpacity, setWindowOpacity] = useState<number>(0.5);
   const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
@@ -65,7 +66,9 @@ export default function App() {
         window.ipcRenderer.send("pos-event-button", { pos: 1 });
         break;
       case "right-button":
-        window.ipcRenderer.send("pos-event-button", { pos: 2 });
+        setClockType(2);
+        /// Stopwatch page, not component;
+        // window.ipcRenderer.send("pos-event-button", { pos: 2 });
         break;
       default:
         break;
@@ -119,6 +122,10 @@ export default function App() {
 
     {clockType == 1 && (
       <TimerModule timerData={timerData} timerStatus={setClockType} />
+    )}
+
+    {clockType == 2 && (
+      <StopwatchModule clockType={setClockType} />
     )}
     
     </div>
