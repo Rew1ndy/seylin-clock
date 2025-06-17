@@ -1,5 +1,6 @@
 import { BrowserWindow, ipcMain } from "electron";
 import { createDialogWindow } from "./dialogWindow";
+import { getLog, startLogging, stopLogging } from "./logger";
 
 export function setupIpcHandlers() {
   ipcMain.on("close-window", () => {
@@ -58,4 +59,21 @@ export function setupIpcHandlers() {
     const mainWindow = BrowserWindow.getAllWindows().find(win => win.webContents !== _event.sender);
     mainWindow?.webContents.send("timer-function-start", message);
   })
+
+  ipcMain.on('start-logging', () => {
+    console.log("start logging from main");
+    setTimeout(() => {
+      startLogging();
+    }, 1000)
+  });
+
+  ipcMain.on('stop-logging', () => {
+    console.log("stoped logging from main");
+    stopLogging();
+  });
+
+  ipcMain.on('get-log', () => {
+    return getLog();
+  });
+  
 }

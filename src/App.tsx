@@ -6,10 +6,12 @@ import TimerModule from './modules/TimerModule';
 import ClockModule from './modules/ClockModule';
 import './App.css';
 import StopwatchModule from './modules/StopwatchModule';
+import LoggingComponent from './components/logging/LoggingComponent';
 
 export default function App() {
   const [timerData, setTimerData] = useState<TimeData>({ hours: 0, minutes: 0, seconds: 0 });
   const [clockType, setClockType] = useState<number>(0); // 0: clock, 1: timer; 2: stopwatch;
+  const [isLogging, setIsLogging] = useState<Boolean>(false);
   const [time, setTime] = useState<string>("");
   const [windowOpacity, setWindowOpacity] = useState<number>(0.5);
   const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
@@ -63,7 +65,8 @@ export default function App() {
         window.ipcRenderer.send("pos-event-button", { pos: 0 });
         break;
       case "mid-button":
-        window.ipcRenderer.send("pos-event-button", { pos: 1 });
+        // window.ipcRenderer.send("pos-event-button", { pos: 1 });
+        setIsLogging(!isLogging);
         break;
       case "right-button":
         setClockType(2);
@@ -105,6 +108,19 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if(isLogging) {
+      window.ipcRenderer.send("start-logging");
+    } else if (!isLogging) {
+      window.ipcRenderer.send("stop-logging");
+      let log = window.ipcRenderer.send("get-log");
+
+      console.log(log);
+    }
+
+    return () => { };
+  }, [isLogging]);
+
   return (
     <div 
       className="clock-wrapper" 
@@ -126,6 +142,10 @@ export default function App() {
 
     {clockType == 2 && (
       <StopwatchModule clockType={setClockType} />
+    )}
+
+    {isLogging && (
+      <LoggingComponent />
     )}
     
     </div>
