@@ -17443,7 +17443,7 @@ bluetooth.bluetoothDevices = bluetoothDevices;
       });
     });
   }
-  function observe(valueObject, interval, callback) {
+  function observe(valueObject, interval2, callback) {
     let _data = null;
     const result2 = setInterval(() => {
       get(valueObject).then((data) => {
@@ -17452,7 +17452,7 @@ bluetooth.bluetoothDevices = bluetoothDevices;
           callback(data);
         }
       });
-    }, interval);
+    }, interval2);
     return result2;
   }
   exports.version = version2;
@@ -17517,74 +17517,88 @@ bluetooth.bluetoothDevices = bluetoothDevices;
   exports.powerShellRelease = util2.powerShellRelease;
 })(lib);
 const si = /* @__PURE__ */ getDefaultExportFromCjs(lib);
-const SYSTEM_PROCESSES = [
-  "system",
-  "idle",
-  "registry",
-  "csrss",
-  "winlogon",
-  "services",
-  "lsass",
-  "svchost",
-  "taskhost",
-  "dwm",
-  "rundll32",
-  "conhost",
-  "runtimebroker",
-  "lenovo",
-  "ntoskrnl",
-  "kernel",
-  "kthreadd",
-  "migration",
-  "rcu_",
-  "watchdog",
-  "amd",
-  "nvidia",
-  "smss",
-  "nvdisplay",
-  "startmenu",
-  "hotkey",
-  "experiencehost",
-  "webview",
-  "esbuild",
-  "lockapp",
-  "rtkaud",
-  "shellhost",
-  "wininit",
-  "sihost",
-  "winapp",
-  "dllhost",
-  "sppsvc",
-  "fmaudio",
-  "trustedinstaller",
-  "fmservice",
-  "audiodg",
-  "ctfmon",
-  "webhelper",
-  "atieclxx",
-  "apsrv",
-  "sdx",
-  "wmiprv",
-  "searchhost"
-];
+const SYSTEM_PROCESSES_REGEX = new RegExp(
+  "^(system|idle|registry|csrss|winlogon|services|lsass|svchost|taskhost|dwm|rundll32|conhost|runtimebroker|lenovo|ntoskrnl|kernel|kthreadd|migration|rcu_*|watchdog|amd|nvidia|smss|nvdisplay|startmenu|hotkey|experiencehost|webview|esbuild|lockapp|rtkaud|shellhost|wininit|sihost|winapp|dllhost|sppsvc|fmaudio|trustedinstaller|fmservice|audiodg|ctfmon|webhelper|atieclxx|apsrv|sdx|wmiprv|searchhost|background_*|fnhotkey_*|.*host)",
+  "i"
+);
 const IS_EXE = ".exe";
 function win32Filter(processes2) {
-  processes2 = processes2.filter((process2) => {
-    return process2.name.includes(IS_EXE) && !SYSTEM_PROCESSES.some((value) => process2.name.toLowerCase().includes(value));
-  });
-  console.log(processes2);
-  return processes2;
+  return processes2.filter((process2) => {
+    if (!process2.name.endsWith(IS_EXE)) return false;
+    const nameLower = process2.name.slice(0, -4);
+    return !SYSTEM_PROCESSES_REGEX.test(nameLower);
+  }).slice(0, 10);
 }
+let interval = null;
 const log = [];
-async function startLogging() {
-  try {
-    const processInfo = await si.processes();
-    let newProc = removeDuplicates(processInfo);
-    win32Filter(newProc);
-    console.log(`Вы используете: ${process.platform}`);
-  } catch (error) {
-    console.error("Ошибка:", error);
+const processStats = /* @__PURE__ */ new Map();
+const INTERVAL_MS = 1e3;
+async function startLogging(intervalMs = INTERVAL_MS) {
+  if (interval) {
+    console.warn("Logging is already running");
+    return;
   }
+  const collectData = async () => {
+    try {
+      const processInfo = await si.processes();
+      if (!processInfo.list || !Array.isArray(processInfo.list)) {
+        throw new Error("Invalid data type from si.processes()");
+      }
+      let filteredProcesses = removeDuplicates(processInfo);
+      switch (process.platform) {
+        case "win32":
+          filteredProcesses = win32Filter(filteredProcesses);
+          break;
+        case "darwin":
+          console.warn("Filtering for macOS is not implemented");
+          break;
+        case "linux":
+          console.warn("Filtering for Linux is not implemented");
+          break;
+        default:
+          throw new Error(`Unsupported platform: ${process.platform}`);
+      }
+      const entry = { apps: filteredProcesses };
+      log.push(entry);
+      filteredProcesses.forEach((proc) => {
+        const stats = processStats.get(proc.name) || {
+          name: proc.name,
+          pids: /* @__PURE__ */ new Set(),
+          snapshots: 0,
+          totalCpu: 0,
+          totalMem: 0
+        };
+        stats.pids.add(proc.pid);
+        stats.snapshots += 1;
+        stats.totalCpu += proc.cpu;
+        stats.totalMem += proc.mem;
+        processStats.set(proc.name, stats);
+      });
+      if (log.length > 1e3) {
+        log.shift();
+      }
+      console.log("Processes:", JSON.stringify(filteredProcesses, null, 2));
+      console.log("Statistics:", JSON.stringify([...processStats.values()], null, 2));
+    } catch (error) {
+      console.error("Error:", error instanceof Error ? error.message : error);
+    }
+  };
+  await collectData();
+  interval = setInterval(collectData, intervalMs);
+}
+function stopLogging() {
+  if (interval) {
+    clearInterval(interval);
+    interval = null;
+  }
+  if (processStats.size > 0) {
+    generateMarkdownReport([...processStats.values()]);
+  } else {
+    console.warn("No process data to generate report");
+  }
+  log.length = 0;
+  processStats.clear();
+  return [...processStats.values()];
 }
 function getLog() {
   return log;
@@ -17599,7 +17613,7 @@ function removeDuplicates(processInfo) {
           name: proc.name,
           pid: proc.pid,
           cpu: proc.cpu || 0,
-          memory: proc.mem || 0
+          mem: proc.mem || 0
         });
       }
     }
@@ -17655,6 +17669,7 @@ function setupIpcHandlers() {
   });
   ipcMain.on("stop-logging", () => {
     console.log("stoped logging from main");
+    stopLogging();
   });
   ipcMain.on("get-log", () => {
     return getLog();
