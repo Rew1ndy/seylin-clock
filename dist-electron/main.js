@@ -17529,15 +17529,86 @@ function win32Filter(processes2) {
     return !SYSTEM_PROCESSES_REGEX.test(nameLower);
   }).slice(0, 10);
 }
+function generateMarkdownReport(stats, loggingStart2, loggingEnd2, INTERVAL_MS2) {
+  let markdown = `# Process Usage Report
+
+`;
+  markdown += `**Generated**: ${(/* @__PURE__ */ new Date()).toLocaleString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZone: "Europe/Moscow"
+  })}
+
+`;
+  markdown += `This report shows statistics for user processes during the logging period.
+
+`;
+  if (loggingStart2 && loggingEnd2) {
+    const durationMs = loggingEnd2.getTime() - loggingStart2.getTime();
+    const durationSec = Math.round(durationMs / 1e3);
+    markdown += `**Logging Duration**: ${durationSec} seconds (from ${loggingStart2.toLocaleString("en-US")} to ${loggingEnd2.toLocaleString("en-US")})
+
+`;
+  }
+  markdown += `## Process Statistics
+
+`;
+  markdown += `|       Process       | PID Count | Snapshots | Duration (sec) | Avg CPU (%) | Avg Mem (%) |
+`;
+  markdown += `|---------------------|-----------|-----------|----------------|-------------|-------------|
+`;
+  stats.forEach((stat) => {
+    const duration = stat.snapshots * INTERVAL_MS2 / 1e3;
+    const avgCpu = stat.snapshots > 0 ? (stat.totalCpu / stat.snapshots).toFixed(2) : "0.00";
+    const avgMem = stat.snapshots > 0 ? (stat.totalMem / stat.snapshots).toFixed(2) : "0.00";
+    markdown += `| ${stat.name.padEnd(24)} | ${stat.pids.size.toString().padEnd(9)} | ${stat.snapshots.toString().padEnd(9)} | ${duration.toFixed(0).padEnd(13)} | ${avgCpu.padStart(6)} | ${avgMem.padStart(6)} |
+`;
+  });
+  markdown += `
+## Notes
+`;
+  markdown += `- **Snapshots**: Number of snapshots in which the process was detected.
+`;
+  markdown += `- **Duration**: Total active time of the process (snapshots × interval ${INTERVAL_MS2 / 1e3} sec).
+`;
+  markdown += `- **Avg CPU/Mem**: Average CPU and memory usage across all snapshots.
+`;
+  require$$1$1.writeFileSync("Process_Usage_Report.md", markdown);
+  console.log("Report saved to Process_Usage_Report.md");
+}
+function removeDuplicates(processInfo) {
+  const processMap = /* @__PURE__ */ new Map();
+  processInfo.list.forEach((proc) => {
+    if (proc.name && proc.pid > 0) {
+      const existing = processMap.get(proc.name);
+      if (!existing || (proc.cpu > existing.cpu || proc.mem > existing.mem)) {
+        processMap.set(proc.name, {
+          name: proc.name,
+          pid: proc.pid,
+          cpu: proc.cpu || 0,
+          mem: proc.mem || 0
+        });
+      }
+    }
+  });
+  return Array.from(processMap.values()).sort((a, b) => b.cpu - a.cpu);
+}
 let interval = null;
 const log = [];
 const processStats = /* @__PURE__ */ new Map();
 const INTERVAL_MS = 1e3;
+let loggingStart = /* @__PURE__ */ new Date();
+let loggingEnd = loggingStart;
 async function startLogging(intervalMs = INTERVAL_MS) {
   if (interval) {
     console.warn("Logging is already running");
     return;
   }
+  loggingStart = /* @__PURE__ */ new Date();
   const collectData = async () => {
     try {
       const processInfo = await si.processes();
@@ -17591,8 +17662,9 @@ function stopLogging() {
     clearInterval(interval);
     interval = null;
   }
+  loggingEnd = /* @__PURE__ */ new Date();
   if (processStats.size > 0) {
-    generateMarkdownReport([...processStats.values()]);
+    generateMarkdownReport([...processStats.values()], loggingStart, loggingEnd, INTERVAL_MS);
   } else {
     console.warn("No process data to generate report");
   }
@@ -17602,23 +17674,6 @@ function stopLogging() {
 }
 function getLog() {
   return log;
-}
-function removeDuplicates(processInfo) {
-  const processMap = /* @__PURE__ */ new Map();
-  processInfo.list.forEach((proc) => {
-    if (proc.name && proc.pid > 0) {
-      const existing = processMap.get(proc.name);
-      if (!existing || (proc.cpu > existing.cpu || proc.mem > existing.mem)) {
-        processMap.set(proc.name, {
-          name: proc.name,
-          pid: proc.pid,
-          cpu: proc.cpu || 0,
-          mem: proc.mem || 0
-        });
-      }
-    }
-  });
-  return Array.from(processMap.values()).sort((a, b) => b.cpu - a.cpu);
 }
 function setupIpcHandlers() {
   ipcMain.on("close-window", () => {

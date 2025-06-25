@@ -1,30 +1,34 @@
 # Process Usage Report
 
-**Generated**: June 18, 2025 at 10:59:56 AM
+**Generated**: June 19, 2025 at 12:57:42 PM
 
 This report shows statistics for user processes during the logging period.
 
-**Logging Duration**: 17 seconds (from 6/18/2025, 10:59:39 AM to 6/18/2025, 10:59:56 AM)
+**Logging Duration**: 218 seconds (from 6/19/2025, 12:54:03 PM to 6/19/2025, 12:57:42 PM)
 
 ## Process Statistics
 
 |       Process       | PID Count | Snapshots | Duration (sec) | Avg CPU (%) | Avg Mem (%) |
 |---------------------|-----------|-----------|----------------|-------------|-------------|
-| sqlservr.exe             | 1         | 13        | 13            |   2.63 |   1.16 |
-| chrome.exe               | 2         | 7         | 7             |   5.45 |   3.43 |
-| YouTube Music.exe        | 2         | 13        | 13            |   0.26 |   2.42 |
-| Telegram.exe             | 1         | 1         | 1             |   0.16 |   3.15 |
-| Code.exe                 | 1         | 1         | 1             |   0.11 |   5.83 |
-| explorer.exe             | 1         | 6         | 6             |   0.00 |   1.43 |
-| node.exe                 | 1         | 1         | 1             |   0.01 |   5.16 |
-| powershell.exe           | 13        | 13        | 13            |  12.97 |   1.06 |
-| sqlceip.exe              | 1         | 2         | 2             |   0.03 |   0.25 |
-| OfficeClickToRun.exe     | 1         | 13        | 13            |   0.00 |   0.08 |
-| electron.exe             | 2         | 12        | 12            |   1.73 |   1.57 |
-| atiesrxx.exe             | 1         | 12        | 12            |   0.00 |   0.01 |
-| sqlwriter.exe            | 1         | 12        | 12            |   0.00 |   0.00 |
-| wlanext.exe              | 1         | 12        | 12            |   0.00 |   0.00 |
-| unsecapp.exe             | 1         | 12        | 12            |   0.02 |   0.05 |
+| sqlservr.exe             | 1         | 54        | 54            |   2.35 |   1.54 |
+| Telegram.exe             | 1         | 53        | 53            |   0.04 |   1.59 |
+| explorer.exe             | 1         | 194       | 194           |   0.09 |   3.89 |
+| Code.exe                 | 2         | 128       | 128           |   0.33 |   3.44 |
+| OfficeClickToRun.exe     | 1         | 212       | 212           |   0.00 |   0.14 |
+| sqlceip.exe              | 1         | 2         | 2             |   0.18 |   0.33 |
+| powershell.exe           | 206       | 213       | 213           |  15.91 |   1.06 |
+| node.exe                 | 1         | 9         | 9             |   0.26 |   2.43 |
+| unsecapp.exe             | 1         | 206       | 206           |   0.00 |   0.06 |
+| ai.exe                   | 1         | 1         | 1             |   0.00 |   0.00 |
+| electron.exe             | 3         | 212       | 212           |   1.75 |   1.30 |
+| atiesrxx.exe             | 1         | 212       | 212           |   0.00 |   0.00 |
+| sqlwriter.exe            | 1         | 212       | 212           |   0.00 |   0.00 |
+| wlanext.exe              | 1         | 211       | 211           |   0.00 |   0.00 |
+| msedgewebview2.exe       | 2         | 113       | 113           |   0.10 |   0.92 |
+| UltiMaker-Cura.exe       | 1         | 91        | 91            |   2.32 |   8.86 |
+| smartscreen.exe          | 1         | 1         | 1             |   0.00 |   0.17 |
+| CuraEngine.exe           | 1         | 5         | 5             |   0.11 |   0.15 |
+| PowerToys.GcodeThumbnailProvider.exe | 1         | 1         | 1             |   0.00 |   0.35 |
 
 ## Notes
 - **Snapshots**: Number of snapshots in which the process was detected.
